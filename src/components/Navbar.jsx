@@ -21,7 +21,7 @@ export default function Navbar() {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center gap-2">
-              <a href="/" className="flex flex-col group">
+              <Link to="/" className="flex flex-col group">
                 <span className="text-xl font-bold tracking-wide text-black transition-transform group-hover:scale-105">
                   <span className="text-[#C9A227]">I</span>CCHHA
                   <span className="text-[#C9A227]">PURTI</span>
@@ -29,7 +29,7 @@ export default function Navbar() {
                 <span className="text-xs text-gray-500 italic font-medium">
                   पूर्ण करे हर इच्छा आपकी
                 </span>
-              </a>
+              </Link>
             </div>
 
             {/* Search Bar */}
@@ -54,13 +54,13 @@ export default function Navbar() {
             {/* Right Section */}
             <div className="flex items-center gap-4">
               {/* Notification Bell */}
-              <a 
-                href="/notification" 
+              <Link
+                to="/notification" 
                 className="relative p-2 rounded-full hover:bg-gray-100 transition-colors group"
               >
                 <Bell size={22} className="text-[#C9A227] group-hover:scale-110 transition-transform" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-              </a>
+              </Link>
 
               {/* Menu Button */}
               <button 
@@ -99,13 +99,13 @@ export default function Navbar() {
               <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg">
                 <User size={28} className="text-[#C9A227]" />
               </div>
-              <a href="/account" className="group">
+              <Link to="/account" className="group">
                 <p className="font-semibold text-lg">John Doe</p>
                 <p className="text-sm text-white/90 flex items-center gap-1 group-hover:gap-2 transition-all">
                   View Profile 
                   <ChevronRight size={14} />
                 </p>
-              </a>
+              </Link>
             </div>
 
             <button 
