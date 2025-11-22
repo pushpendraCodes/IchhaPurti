@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Search, Bell, Menu, X, User, Home, ShoppingBag, Package, Heart, Phone, LogOut, ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -121,15 +122,15 @@ export default function Navbar() {
           {menuItems.map((item, index) => {
             const Icon = item.icon;
             return (
-              <a
+              <Link
                 key={index}
-                href={item.href}
+                to={item.href}
                 className="flex items-center gap-4 px-4 py-3 rounded-lg text-gray-700 hover:bg-[#C9A227]/10 hover:text-[#C9A227] transition-all group"
               >
                 <Icon size={20} className="group-hover:scale-110 transition-transform" />
                 <span className="font-medium flex-1">{item.label}</span>
                 <ChevronRight size={18} className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </a>
+              </Link>
             );
           })}
 
