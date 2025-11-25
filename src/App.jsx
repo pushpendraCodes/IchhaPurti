@@ -60,7 +60,7 @@ function App() {
           <Route path="/cart" element={<CartPage />} />
           <Route path="/payments" element={<PaymentPage />} />
           <Route path="/orders" element={<OrdersPage />} />
-          <Route path="/orders/:id" element={<OrderDetailsPage />} />
+          <Route path="/orders/:orderId" element={<OrderDetailsPage />} />
           <Route path="/orders/return/:id" element={<OrderReturnPage />} />
           <Route path="/add/review/:id" element={<AddReviewPage />} />
           <Route path="/refer-programme" element={<ReferProgramPage />} />

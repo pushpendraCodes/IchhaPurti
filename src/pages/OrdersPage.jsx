@@ -1,24 +1,166 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Package, Star, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const OrdersPage = () => {
-  const [currentPage, setCurrentPage] = useState(2);
-  const totalPages = 6;
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const ordersPerPage = 5;
 
-  const orders = [
-    { id: 1, status: 'Processing', image: '/api/placeholder/48/48', color: 'bg-slate-400' },
-    { id: 2, status: 'Delivered', image: '/api/placeholder/48/48', color: 'bg-teal-500', reviewed: true },
-    { id: 3, status: 'Returned', image: '/api/placeholder/48/48', color: 'bg-orange-400', reviewed: true },
-    { id: 4, status: 'Delivered', image: '/api/placeholder/48/48', color: 'bg-teal-500', reviewed: true },
-    { id: 5, status: 'Returned', image: '/api/placeholder/48/48', color: 'bg-orange-400', reviewed: true },
-    { id: 6, status: 'Delivered', image: '/api/placeholder/48/48', color: 'bg-teal-500', reviewed: true },
-    { id: 7, status: 'Returned', image: '/api/placeholder/48/48', color: 'bg-orange-400', reviewed: true },
-    { id: 8, status: 'Delivered', image: '/api/placeholder/48/48', color: 'bg-teal-500', reviewed: true },
-    { id: 9, status: 'Delivered', image: '/api/placeholder/48/48', color: 'bg-teal-500', reviewed: true },
-    { id: 10, status: 'Delivered', image: '/api/placeholder/48/48', color: 'bg-teal-500', reviewed: true },
-  ];
-const Navigate = useNavigate()
+  useEffect(() => {
+    fetchOrders(currentPage);
+  }, [currentPage]);
+
+  const fetchOrders = async (page) => {
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/user/orders/getMyOrders
+?page=${page}&limit=${ordersPerPage}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to fetch orders');
+
+      const data = await response.json();
+      setOrders(data.data || []);
+      setTotalPages(data.pagination.totalPages || 1);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+      console.error('Error fetching orders:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusColor = (status) => {
+    const statusColors = {
+      'Placed': 'text-blue-400 bg-blue-400',
+      'Processing': 'text-blue-400 bg-blue-400',
+      'Shipped': 'text-purple-400 bg-purple-400',
+      'Delivered': 'text-teal-400 bg-teal-400',
+      'Cancelled': 'text-red-400 bg-red-400',
+      'Returned': 'text-orange-400 bg-orange-400',
+      'Refunded': 'text-yellow-400 bg-yellow-400'
+    };
+    return statusColors[status] || 'text-slate-400 bg-slate-400';
+  };
+  const Navigate = useNavigate()
+  const handleNavigateToOrder = (orderId) => {
+    // Navigate to order details page
+   
+  };
+
+  const handleAddReview = (orderId, e) => {
+    e.stopPropagation();
+    window.location.href = `/add/review/${orderId}`;
+  };
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const renderPaginationButtons = () => {
+    const buttons = [];
+
+    // Always show first page
+    buttons.push(
+      <button
+        key={1}
+        onClick={() => handlePageChange(1)}
+        className={`w-8 h-8 rounded-full flex items-center justify-center text-white transition-all ${currentPage === 1 ? 'bg-amber-500' : 'bg-slate-700/80 hover:bg-slate-700'
+          }`}
+      >
+        1
+      </button>
+    );
+
+    // Show ellipsis if needed
+    if (currentPage > 3) {
+      buttons.push(
+        <span key="ellipsis-1" className="text-white px-2">
+          ...
+        </span>
+      );
+    }
+
+    // Show pages around current page
+    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+      if (i === 1 || i === totalPages) continue;
+      buttons.push(
+        <button
+          key={i}
+          onClick={() => handlePageChange(i)}
+          className={`w-8 h-8 rounded-full flex items-center justify-center text-white transition-all ${currentPage === i ? 'bg-amber-500' : 'bg-slate-700/80 hover:bg-slate-700'
+            }`}
+        >
+          {i}
+        </button>
+      );
+    }
+
+    // Show ellipsis if needed
+    if (currentPage < totalPages - 2) {
+      buttons.push(
+        <span key="ellipsis-2" className="text-white px-2">
+          ...
+        </span>
+      );
+    }
+
+    // Always show last page if there's more than 1 page
+    if (totalPages > 1) {
+      buttons.push(
+        <button
+          key={totalPages}
+          onClick={() => handlePageChange(totalPages)}
+          className={`w-8 h-8 rounded-full flex items-center justify-center text-white transition-all ${currentPage === totalPages ? 'bg-amber-500' : 'bg-slate-700/80 hover:bg-slate-700'
+            }`}
+        >
+          {totalPages}
+        </button>
+      );
+    }
+
+    return buttons;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading orders...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-400 text-xl mb-4">Error: {error}</p>
+          <button
+            onClick={() => fetchOrders(currentPage)}
+            className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 relative overflow-hidden">
       {/* Mystical background elements */}
@@ -54,87 +196,112 @@ const Navigate = useNavigate()
       <div className="relative z-10 max-w-5xl mx-auto p-6">
         <h1 className="text-3xl font-bold text-white mb-8">My Orders</h1>
 
-        <div className="space-y-4">
-          {orders.map((order) => (
-            <div
-        
-              key={order.id}
-              className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-lg p-4 hover:bg-slate-800/60 transition-all duration-300"
+        {orders.length === 0 ? (
+          <div className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-lg p-8 text-center">
+            <Package className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+            <p className="text-gray-400 text-lg">No orders found</p>
+            <button
+              onClick={() => window.location.href = '/'}
+              className="mt-4 bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg transition-colors"
             >
-              <div className="flex items-center gap-4">
-                {/* Product Image */}
-                <div     onClick={()=>Navigate("/orders/1")} className={`w-12 h-12 ${order.color} rounded cursor-pointer flex items-center justify-center`}>
-                  <Package className="w-6 h-6 text-white" />
-                </div>
+              Start Shopping
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {orders.map((order) => {
+              const statusColors = getStatusColor(order.status);
+              const [textColor, bgColor] = statusColors.split(' ');
+              const isDelivered = order.status === 'Delivered';
 
-                {/* Order Details */}
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-sm font-medium ${
-                      order.status === 'Processing' ? 'text-blue-400' :
-                      order.status === 'Delivered' ? 'text-teal-400' :
-                      'text-orange-400'
-                    }`}>
-                      {order.status}
-                    </span>
-                  </div>
-                  <p className="text-white text-sm">
-                    PARKER Vector... Pen +2 more items
-                  </p>
-                  <p className="text-amber-400 font-semibold">₹ 249</p>
-                  
-                  {/* Star Rating */}
-                  {order.reviewed && (
-                    <div className="flex items-center gap-1 mt-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
-                      ))}
-                      <Link to ="/add/review/3" className="text-xs text-blue-400 ml-2 cursor-pointer hover:text-blue-300">
-                        Add Review
-                      </Link>
+              return (
+                <div
+                  key={order._id}
+                  className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-lg p-4 hover:bg-slate-800/60 transition-all duration-300"
+                >
+                  <div className="flex items-center gap-4">
+                    {/* Product Image */}
+                    <div
+                      onClick={() =>  Navigate(`/orders/${order._id}`)}
+                      className="w-16 h-16 rounded cursor-pointer overflow-hidden flex-shrink-0 bg-slate-700"
+                    >
+                      {order.image ? (
+                        <img
+                          src={order.image}
+                          alt={order.productName}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className={`w-full h-full ${bgColor} flex items-center justify-center`}>
+                          <Package className="w-8 h-8 text-white" />
+                        </div>
+                      )}
                     </div>
-                  )}
+
+                    {/* Order Details */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs text-gray-400">
+                          Order ID: {order.orderId}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`text-sm font-medium ${textColor}`}>
+                          {order.status}
+                        </span>
+                      </div>
+                      <p className="text-white text-sm truncate">
+                        {order.productName}
+                      </p>
+                      <p className="text-amber-400 font-semibold">₹ {order.price}</p>
+
+                      {/* Star Rating - Show only for delivered orders */}
+                      {isDelivered && (
+                        <div className="flex items-center gap-1 mt-2">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
+                          ))}
+                          <button
+                            onClick={(e) => handleAddReview(order._id, e)}
+                            className="text-xs text-blue-400 ml-2 cursor-pointer hover:text-blue-300 transition-colors"
+                          >
+                            Add Review
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Pagination */}
-        <div className="flex items-center justify-center gap-2 mt-8">
-          <button
-            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-            className="w-8 h-8 rounded-full bg-amber-500/80 hover:bg-amber-500 flex items-center justify-center text-white transition-all"
-            disabled={currentPage === 1}
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          
-          <button className="w-8 h-8 rounded-full bg-amber-500/80 hover:bg-amber-500 flex items-center justify-center text-white transition-all">
-            1
-          </button>
-          
-          <button className="w-8 h-8 rounded-full bg-slate-700/80 hover:bg-slate-700 flex items-center justify-center text-white transition-all">
-            2
-          </button>
-          
-          <span className="text-white px-2">...</span>
-          
-          <button className="w-8 h-8 rounded-full bg-slate-700/80 hover:bg-slate-700 flex items-center justify-center text-white transition-all">
-            6
-          </button>
-          
-          <button
-            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-            className="w-8 h-8 rounded-full bg-amber-500/80 hover:bg-amber-500 flex items-center justify-center text-white transition-all"
-            disabled={currentPage === totalPages}
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-8">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              className="w-8 h-8 rounded-full bg-amber-500/80 hover:bg-amber-500 flex items-center justify-center text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
+            {renderPaginationButtons()}
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              className="w-8 h-8 rounded-full bg-amber-500/80 hover:bg-amber-500 flex items-center justify-center text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={currentPage === totalPages}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes twinkle {
           0%, 100% { opacity: 0.3; }
           50% { opacity: 1; }

@@ -3,11 +3,11 @@ import { User, MapPin, ShoppingCart, Package, Gift, Ticket, MessageCircle, Globe
 import { Link } from 'react-router-dom';
 
 export default function AccountPage() {
-  const [user] = useState({
-    name: 'Tony Stark',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
-  });
-
+  // const [user] = useState({
+  //   name: 'Tony Stark',
+  //   avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
+  // });
+ const user = JSON.parse(localStorage.getItem("user"))
   const menuItems = [
     { link: "/view-profile", icon: User, label: 'Profile' },
     { link: "/addresses", icon: MapPin, label: 'Shipping Address' },
@@ -47,8 +47,8 @@ export default function AccountPage() {
         <div className="flex flex-col items-center mb-6">
           <div className="w-20 h-20 rounded-full border-2 border-cyan-400 p-0.5 mb-2">
             <img
-              src={user.avatar}
-              alt={user.name}
+              src={user?.profileImage}
+              alt={user?.name}
               className="w-full h-full rounded-full object-cover"
             />
           </div>

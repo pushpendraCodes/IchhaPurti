@@ -14,6 +14,8 @@ export default function Navbar() {
     { icon: Phone, label: "Contact Us", href: "/contact" },
   ];
 
+
+  const user = JSON.parse(localStorage?.getItem("user")||{})
   return (
     <>
       <nav className="w-full bg-gradient-to-r from-white to-gray-50 border-b border-gray-200 shadow-sm sticky top-0 z-30 backdrop-blur-sm bg-white/95">
@@ -35,11 +37,10 @@ export default function Navbar() {
             {/* Search Bar */}
             <div className="hidden md:flex flex-1 max-w-md mx-8">
               <div className="relative w-full group">
-                <Search 
-                  className={`absolute left-3 top-1/2 -translate-y-1/2 transition-colors ${
-                    searchFocused ? 'text-[#C9A227]' : 'text-gray-400'
-                  }`} 
-                  size={18} 
+                <Search
+                  className={`absolute left-3 top-1/2 -translate-y-1/2 transition-colors ${searchFocused ? 'text-[#C9A227]' : 'text-gray-400'
+                    }`}
+                  size={18}
                 />
                 <input
                   type="text"
@@ -55,7 +56,7 @@ export default function Navbar() {
             <div className="flex items-center gap-4">
               {/* Notification Bell */}
               <Link
-                to="/notification" 
+                to="/notification"
                 className="relative p-2 rounded-full hover:bg-gray-100 transition-colors group"
               >
                 <Bell size={22} className="text-[#C9A227] group-hover:scale-110 transition-transform" />
@@ -63,7 +64,7 @@ export default function Navbar() {
               </Link>
 
               {/* Menu Button */}
-              <button 
+              <button
                 onClick={() => setMenuOpen(true)}
                 className="p-2 rounded-full hover:bg-gray-100 transition-colors group"
               >
@@ -88,27 +89,31 @@ export default function Navbar() {
 
       {/* RIGHT SLIDING DRAWER */}
       <div
-        className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${
-          menuOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${menuOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         {/* User Profile Section */}
         <div className="bg-gradient-to-br from-[#C9A227] to-[#B89020] p-6 text-white">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg">
-                <User size={28} className="text-[#C9A227]" />
+              <div className="w-14 h-14 rounded-full overflow-hidden flex items-center justify-center shadow-lg">
+                <img
+                  className="w-full h-full object-cover"
+                  src={user?.profileImage || "https://via.placeholder.com/150"}
+                  alt="profile"
+                />
               </div>
-              <Link to="/account" className="group">
-                <p className="font-semibold text-lg">John Doe</p>
+
+              <Link to="/account"    onClick={() => setMenuOpen(false)} className="group">
+                <p className="font-semibold text-lg">{user?.name}</p>
                 <p className="text-sm text-white/90 flex items-center gap-1 group-hover:gap-2 transition-all">
-                  View Profile 
+                  View Profile
                   <ChevronRight size={14} />
                 </p>
               </Link>
             </div>
 
-            <button 
+            <button
               onClick={() => setMenuOpen(false)}
               className="p-1.5 rounded-full hover:bg-white/20 transition-colors"
             >
@@ -119,20 +124,22 @@ export default function Navbar() {
 
         {/* Drawer Menu Items */}
         <div className="p-6 flex flex-col gap-2">
-          {menuItems.map((item, index) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={index}
-                to={item.href}
-                className="flex items-center gap-4 px-4 py-3 rounded-lg text-gray-700 hover:bg-[#C9A227]/10 hover:text-[#C9A227] transition-all group"
-              >
-                <Icon size={20} className="group-hover:scale-110 transition-transform" />
-                <span className="font-medium flex-1">{item.label}</span>
-                <ChevronRight size={18} className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </Link>
-            );
-          })}
+        {menuItems.map((item, index) => {
+  const Icon = item.icon;
+  return (
+    <Link
+      key={index}
+      to={item.href}
+      onClick={() => setMenuOpen(false)}  // Close sidebar on click
+      className="flex items-center gap-4 px-4 py-3 rounded-lg text-gray-700 hover:bg-[#C9A227]/10 hover:text-[#C9A227] transition-all group"
+    >
+      <Icon size={20} className="group-hover:scale-110 transition-transform" />
+      <span className="font-medium flex-1">{item.label}</span>
+      <ChevronRight size={18} className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+    </Link>
+  );
+})}
+
 
           {/* Logout Button */}
           <button className="mt-6 flex items-center justify-center gap-3 bg-gradient-to-r from-[#C9A227] to-[#B89020] text-white py-3 px-4 rounded-lg font-medium hover:shadow-lg hover:shadow-[#C9A227]/30 transition-all group">

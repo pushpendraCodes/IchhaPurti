@@ -1,69 +1,35 @@
 import { useState, useEffect } from 'react';
-import { Star, ChevronLeft, ChevronRight, ShoppingCart, Eye, Heart } from 'lucide-react';
-import { Link } from 'react-router-dom';
-
-const products = [
-  { id: 1, name: "PARKER Vector Standard Chrome Pen", rating: 4.9, reviews: "2.3M", price: 249, originalPrice: 508, discount: 51, images: [
-    "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=300&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1585336261022-680e295ce3fe?w=300&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1593462169757-e6f8961c1c5d?w=300&h=200&fit=crop"
-  ]},
-  { id: 2, name: "Premium Leather Notebook A5", rating: 4.8, reviews: "1.8M", price: 349, originalPrice: 699, discount: 50, images: [
-    "https://images.unsplash.com/photo-1544816155-12df9643f363?w=300&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=300&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1517842645767-c639042777db?w=300&h=200&fit=crop"
-  ]},
-  { id: 3, name: "Wireless Bluetooth Earbuds Pro", rating: 4.7, reviews: "3.1M", price: 899, originalPrice: 1999, discount: 55, images: [
-    "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=300&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=300&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1598331668826-20cecc596b86?w=300&h=200&fit=crop"
-  ]},
-  { id: 4, name: "Smart Watch Fitness Tracker", rating: 4.6, reviews: "2.5M", price: 1299, originalPrice: 2999, discount: 57, images: [
-    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=300&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=300&h=200&fit=crop"
-  ]},
-  { id: 5, name: "Portable Power Bank 20000mAh", rating: 4.8, reviews: "1.2M", price: 799, originalPrice: 1599, discount: 50, images: [
-    "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=300&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1585338107529-13afc5f02586?w=300&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1625895197185-efcec01cffe0?w=300&h=200&fit=crop"
-  ]},
-  { id: 6, name: "Designer Sunglasses UV400", rating: 4.5, reviews: "980K", price: 599, originalPrice: 1299, discount: 54, images: [
-    "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=300&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=300&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=300&h=200&fit=crop"
-  ]},
-  { id: 7, name: "Stainless Steel Water Bottle", rating: 4.9, reviews: "1.5M", price: 449, originalPrice: 899, discount: 50, images: [
-    "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=300&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1570831739435-6601aa3fa4fb?w=300&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1523362628745-0c100150b504?w=300&h=200&fit=crop"
-  ]},
-  { id: 8, name: "Mechanical Gaming Keyboard RGB", rating: 4.7, reviews: "2.1M", price: 1499, originalPrice: 3499, discount: 57, images: [
-    "https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?w=300&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1595225476474-87563907a212?w=300&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=300&h=200&fit=crop"
-  ]}
-];
+import { Star, ChevronLeft, ChevronRight, ShoppingCart, Eye, Heart, Loader2, Check } from 'lucide-react';
+import { use } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function ImageCarousel({ images }) {
   const [current, setCurrent] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
-    if (!isHovered) return;
+    if (!isHovered || !images || images.length === 0) return;
     const interval = setInterval(() => {
       setCurrent(p => (p + 1) % images.length);
     }, 1500);
     return () => clearInterval(interval);
-  }, [isHovered, images.length]);
+  }, [isHovered, images]);
+
+  if (!images || images.length === 0) {
+    return (
+      <div className="h-36 bg-gray-200 flex items-center justify-center">
+        <span className="text-gray-400">No Image</span>
+      </div>
+    );
+  }
 
   return (
     <div className="relative h-36 overflow-hidden group" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => { setIsHovered(false); setCurrent(0); }}>
       {images.map((img, i) => (
-        <img key={i} src={img} alt="Product" className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500" style={{ opacity: i === current ? 1 : 0 }}/>
+        <img key={i} src={img} alt="Product" className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500" style={{ opacity: i === current ? 1 : 0 }} onError={(e) => { e.target.src = 'https://via.placeholder.com/300x200?text=No+Image'; }}/>
       ))}
       
-      {isHovered && (
+      {isHovered && images.length > 1 && (
         <>
           <button onClick={(e) => { e.stopPropagation(); setCurrent(p => (p - 1 + images.length) % images.length); }} className="absolute left-1 top-1/2 -translate-y-1/2 w-6 h-6 bg-white/90 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity">
             <ChevronLeft size={14} className="text-gray-700"/>
@@ -74,57 +40,100 @@ function ImageCarousel({ images }) {
         </>
       )}
       
-      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-        {images.map((_, i) => (
-          <button key={i} onClick={(e) => { e.stopPropagation(); setCurrent(i); }} className="w-1.5 h-1.5 rounded-full transition-all" style={{ backgroundColor: i === current ? '#C9A227' : 'rgba(255,255,255,0.5)' }}/>
-        ))}
-      </div>
+      {images.length > 1 && (
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+          {images.map((_, i) => (
+            <button key={i} onClick={(e) => { e.stopPropagation(); setCurrent(i); }} className="w-1.5 h-1.5 rounded-full transition-all" style={{ backgroundColor: i === current ? '#C9A227' : 'rgba(255,255,255,0.5)' }}/>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
-function ProductCard({ product }) {
+function ProductCard({ product, onAddToCart }) {
   const [liked, setLiked] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [addedToCart, setAddedToCart] = useState(false);
+
+  const handleAddToCart = async (e) => {
+    e.stopPropagation();
+    setAddingToCart(true);
+
+    try {
+      await onAddToCart(product);
+      setAddedToCart(true);
+      setTimeout(() => setAddedToCart(false), 2000);
+    } catch (error) {
+      console.error('Failed to add to cart:', error);
+    } finally {
+      setAddingToCart(false);
+    }
+  };
+
+  const handleViewDetails = () => {
+    // Update this to match your routing structure
+    window.location.href = `/product/${product.id || product._id}`;
+  };
 
   return (
     <div className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 relative group">
-      <div className="absolute top-2 left-2 z-10">
-        <div className="px-2 py-1 rounded-md text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' }}>
-          {product.discount}% OFF
+      {product.discount && (
+        <div className="absolute top-2 left-2 z-10">
+          <div className="px-2 py-1 rounded-md text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' }}>
+            {product.discount}% OFF
+          </div>
         </div>
-      </div>
+      )}
       
       <button onClick={() => setLiked(!liked)} className="absolute top-2 right-2 z-10 w-8 h-8 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-md transition-transform hover:scale-110">
         <Heart size={16} fill={liked ? '#ef4444' : 'none'} stroke={liked ? '#ef4444' : '#666'} />
       </button>
 
       <div style={{ background: 'linear-gradient(180deg, #e8f4f8 0%, #c8dce8 100%)' }}>
-        <ImageCarousel images={product.images} />
+        <ImageCarousel images={product.images || []} />
       </div>
 
       <div className="p-4">
-        <h3 className="text-sm font-semibold text-gray-800 leading-snug mb-2 line-clamp-2 min-h-10">{product.name}</h3>
+        <h3 className="text-sm font-semibold text-gray-800 leading-snug mb-2 line-clamp-2 min-h-10">{product.name || 'Untitled Product'}</h3>
         
         <div className="flex items-center gap-1.5 mb-2">
           <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded" style={{ backgroundColor: 'rgba(201,162,39,0.1)' }}>
             <Star size={12} fill="#C9A227" stroke="#C9A227"/>
-            <span className="text-xs font-semibold" style={{ color: '#C9A227' }}>{product.rating}</span>
+            <span className="text-xs font-semibold" style={{ color: '#C9A227' }}>{product.overallRating || 0}</span>
           </div>
-          <span className="text-xs text-gray-400">({product.reviews} Reviews)</span>
+          <span className="text-xs text-gray-400">({product.totalReviews || '0'} Reviews)</span>
         </div>
         
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-lg font-bold" style={{ color: '#C9A227' }}>₹{product.price}</span>
-          <span className="text-sm text-gray-400 line-through">₹{product.originalPrice}</span>
+          <span className="text-lg font-bold" style={{ color: '#C9A227' }}>₹{product.price || 0}</span>
+          {product.originalPrice && (
+            <span className="text-sm text-gray-400 line-through">₹{product.originalPrice}</span>
+          )}
         </div>
         
         <div className="flex gap-2">
-          <button className="flex-1 flex items-center justify-center gap-1 py-2 px-3 border-2 rounded-lg font-medium text-xs transition-all hover:bg-amber-50" style={{ borderColor: '#C9A227', color: '#C9A227' }}>
-            <ShoppingCart size={14}/> Add
+          <button 
+            onClick={handleAddToCart}
+            disabled={addingToCart || addedToCart}
+            className="flex-1 flex items-center justify-center gap-1 py-2 px-3 border-2 rounded-lg font-medium text-xs transition-all hover:bg-amber-50 disabled:opacity-70 disabled:cursor-not-allowed" 
+            style={{ borderColor: '#C9A227', color: addedToCart ? '#22c55e' : '#C9A227' }}
+          >
+            {addingToCart ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : addedToCart ? (
+              <>
+                <Check size={14} /> Added
+              </>
+            ) : (
+              <>
+                <ShoppingCart size={14}/> Add
+              </>
+            )}
           </button>
-          <Link to="/product/product1" className="flex-1 flex items-center justify-center gap-1 py-2 px-3 rounded-lg font-medium text-xs text-white transition-all hover:opacity-90" style={{ background: 'linear-gradient(135deg, #C9A227 0%, #a07d1c 100%)' }}>
+          <button onClick={handleViewDetails} className="flex-1 flex items-center justify-center gap-1 py-2 px-3 rounded-lg font-medium text-xs text-white transition-all hover:opacity-90" style={{ background: 'linear-gradient(135deg, #C9A227 0%, #a07d1c 100%)' }}>
             <Eye size={14}/> Details
-          </Link>
+          </button>
         </div>
       </div>
     </div>
@@ -132,6 +141,141 @@ function ProductCard({ product }) {
 }
 
 export default function OurProducts() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/user/products/getAllProducts?page=1&limit=8`, {
+        method: 'GET',
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Handle different API response structures
+      if (data.success && Array.isArray(data.products)) {
+        setProducts(data.products);
+      } else if (data.success && Array.isArray(data.data)) {
+        setProducts(data.data);
+      } else if (Array.isArray(data)) {
+        setProducts(data);
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (err) {
+      console.error('Error fetching products:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+const Navigate = useNavigate()
+  const handleAddToCart = async (product) => {
+    const token = localStorage.getItem("token");
+    
+    if (!token) {
+      alert("Please login to add items to cart");
+      window.location.href = '/login';
+      return;
+    }
+
+    try {
+      const cartData = {
+        productId: product._id || product.id,
+        quantity: 1,
+        totalAmount: product.price || 0
+      };
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/user/cart/addToCart`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(cartData)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to add to cart');
+      }
+
+      console.log('Added to cart successfully:', result);
+      
+      // Optional: Update cart count in header or show notification
+      // You can dispatch an event here that your header component listens to
+      window.dispatchEvent(new CustomEvent('cartUpdated', { detail: result }));
+      Navigate("/cart")
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      alert(error.message || 'Failed to add product to cart. Please try again.');
+      throw error;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #0f1c2e 0%, #1a3352 50%, #0d2440 100%)' }}>
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" style={{ color: '#C9A227' }} />
+          <p className="text-white text-lg">Loading products...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'linear-gradient(135deg, #0f1c2e 0%, #1a3352 50%, #0d2440 100%)' }}>
+        <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-2xl">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl">⚠️</span>
+          </div>
+          <h3 className="text-xl font-bold text-gray-800 mb-2">Error Loading Products</h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button 
+            onClick={fetchProducts}
+            className="px-6 py-2 rounded-lg text-white font-medium transition-all hover:opacity-90"
+            style={{ background: 'linear-gradient(135deg, #C9A227 0%, #a07d1c 100%)' }}
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (products.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'linear-gradient(135deg, #0f1c2e 0%, #1a3352 50%, #0d2440 100%)' }}>
+        <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-2xl">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl">📦</span>
+          </div>
+          <h3 className="text-xl font-bold text-gray-800 mb-2">No Products Found</h3>
+          <p className="text-gray-600">There are currently no products available.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen p-6 md:p-8" style={{ background: 'linear-gradient(135deg, #0f1c2e 0%, #1a3352 50%, #0d2440 100%)' }}>
       <div className="max-w-7xl mx-auto">
@@ -140,15 +284,25 @@ export default function OurProducts() {
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-1">Our Products</h2>
             <p className="text-gray-400 text-sm">Discover amazing deals on top products</p>
           </div>
-          <Link to="/products" className="flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium transition-all hover:gap-2" style={{ backgroundColor: 'rgba(201,162,39,0.15)', color: '#C9A227', border: '1px solid rgba(201,162,39,0.3)' }}>
+          <button onClick={() => window.location.href = '/products'} className="flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium transition-all hover:gap-2" style={{ backgroundColor: 'rgba(201,162,39,0.15)', color: '#C9A227', border: '1px solid rgba(201,162,39,0.3)' }}>
             View All <ChevronRight size={16}/>
-          </Link>
+          </button>
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard 
+              key={product.id || product._id} 
+              product={product} 
+              onAddToCart={handleAddToCart}
+            />
           ))}
+        </div>
+
+        <div className="mt-8 text-center">
+          <p className="text-gray-400 text-sm">
+            Showing {products.length} product{products.length !== 1 ? 's' : ''}
+          </p>
         </div>
       </div>
     </div>

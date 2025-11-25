@@ -1,34 +1,122 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 export default function CartPage() {
-  const [cartItems, setCartItems] = useState([
-    { id: 1, name: 'PARKER Vector Standard Chrome Pen', price: 249, quantity: 1, image: '🖊️', color: 'blue' },
-    { id: 2, name: 'PARKER Vector Standard Chrome Pen', price: 249, quantity: 1, image: '🖊️', color: 'gold' },
-    { id: 3, name: 'PARKER Vector Standard Chrome Pen', price: 249, quantity: 1, image: '🖊️', color: 'orange' }
-  ]);
-
-  const address = {
-    name: 'Tony Stark',
-    street: 'London Street, Flat no 108, Maharashtra, 789458',
-    mobile: '+91 9876543210'
-  };
+  const [cartItems, setCartItems] = useState([]);
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showAddressModal, setShowAddressModal] = useState(false);
 
   const staffDiscount = 47;
   const shippingAmount = 50;
 
-  const updateQuantity = (id, delta) => {
-    setCartItems(items => items.map(item => 
-      item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
-    ));
+  // Fetch cart data on component mount
+  useEffect(() => {
+    fetchCartData();
+    fetchAddresses();
+  }, []);
+
+  const fetchCartData = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/user/cart/cartItems
+`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}` // Adjust based on your auth method
+        }
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch cart data');
+
+      const data = await response.json();
+      setCartItems(data.data || []);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+      console.error('Error fetching cart:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const removeItem = (id) => {
-    setCartItems(items => items.filter(item => item.id !== id));
+  const fetchAddresses = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/user/address/getAllAddress`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch addresses');
+
+      const data = await response.json();
+      setAddresses(data.data || []);
+
+      // Set default address or first address
+      const defaultAddr = data.addresses?.find(addr => addr.isDefault) || data.data?.[0];
+      setSelectedAddress(defaultAddr);
+    } catch (err) {
+      console.error('Error fetching addresses:', err);
+    }
   };
 
-  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const updateQuantity = async ({ id, cartId, delta, price }) => {
+    const item = cartItems.find(item => item._id === cartId);
+    const newQuantity = Math.max(1, Number(item.quantity) + delta);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/user/cart/updateQuantity`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          productId: id,
+          quantity: newQuantity,
+          totalAmount: Number(price * newQuantity)
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to update quantity');
+
+      // Refetch cart data to get updated state
+      fetchCartData();
+    } catch (err) {
+      console.error('Error updating quantity:', err);
+      alert('Failed to update quantity. Please try again.');
+    }
+  };
+
+  const removeItem = async (id) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/user/cart/removeFromCart/${id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        // body: JSON.stringify({ itemId: id })
+      });
+
+      if (!response.ok) throw new Error('Failed to remove item');
+
+      // Update local state
+      fetchCartData()
+    } catch (err) {
+      console.error('Error removing item:', err);
+      alert('Failed to remove item. Please try again.');
+    }
+  };
+
+  const totalItems = cartItems.reduce((sum, item) => sum + Number(item.quantity), 0);
+  const totalPrice = cartItems.reduce((sum, item) => sum + Number(item.totalAmount), 0);
   const totalAmount = totalPrice - staffDiscount + shippingAmount;
 
   const PenIcon = ({ color }) => (
@@ -47,6 +135,30 @@ export default function CartPage() {
     </div>
   );
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading cart...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-400 text-xl mb-4">Error: {error}</p>
+          <button
+            onClick={fetchCartData}
+            className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 relative overflow-hidden">
       {/* Background glow */}
@@ -58,39 +170,120 @@ export default function CartPage() {
         <h1 className="text-xl font-bold text-white mb-4">My Cart</h1>
 
         {/* Delivery Address */}
-        <div className="bg-slate-800/80 backdrop-blur-sm rounded-xl p-4 mb-4 border border-slate-700">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-white text-sm">
-                <span className="text-gray-400">Deliver to: </span>
-                <span className="font-semibold">{address.name}</span>
-              </p>
-              <p className="text-gray-400 text-sm mt-1">{address.street}</p>
-              <p className="text-gray-400 text-sm">Mobile Number: {address.mobile}</p>
+        {selectedAddress && (
+          <div className="bg-slate-800/80 backdrop-blur-sm rounded-xl p-4 mb-4 border border-slate-700">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-white text-sm">
+                  <span className="text-gray-400">Deliver to: </span>
+                  <span className="font-semibold">{selectedAddress.fullName}</span>
+                </p>
+                <p className="text-gray-400 text-sm mt-1">{selectedAddress.country}</p>
+                <p className="text-gray-400 text-sm mt-1">{selectedAddress.state}</p>
+                <p className="text-gray-400 text-sm mt-1">{selectedAddress.city}</p>
+                <p className="text-gray-400 text-sm mt-1">{selectedAddress.street}</p>
+                <p className="text-gray-400 text-sm mt-1">{selectedAddress.pinCode}</p>
+                <p className="text-gray-400 text-sm">Mobile Number: {selectedAddress.phoneNumber}</p>
+              </div>
+              <button
+                onClick={() => setShowAddressModal(true)}
+                className="bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+              >
+                Change Address
+              </button>
             </div>
-            <button className="bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
-              Change Address
-            </button>
           </div>
-        </div>
+        )}
+
+        {/* Address Selection Modal */}
+        {showAddressModal && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-slate-800 rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-white">Select Delivery Address</h2>
+                <button
+                  onClick={() => setShowAddressModal(false)}
+                  className="text-gray-400 hover:text-white text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {addresses.map(address => (
+                  <div
+                    key={address.id}
+                    onClick={() => {
+                      setSelectedAddress(address);
+                      setShowAddressModal(false);
+                    }}
+                    className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedAddress?.id === address.id
+                      ? 'border-amber-500 bg-slate-700/50'
+                      : 'border-slate-700 hover:border-slate-600'
+                      }`}
+                  >
+                    <p className="text-white text-sm">
+                      {/* <span className="text-gray-400">Deliver to: </span> */}
+                      <span className="font-semibold">{selectedAddress.fullName}</span>
+                    </p>
+                    <p className="text-gray-400 text-sm mt-1">{selectedAddress.country}</p>
+                    <p className="text-gray-400 text-sm mt-1">{selectedAddress.state}</p>
+                    <p className="text-gray-400 text-sm mt-1">{selectedAddress.city}</p>
+                    <p className="text-gray-400 text-sm mt-1">{selectedAddress.street}</p>
+                    <p className="text-gray-400 text-sm mt-1">{selectedAddress.pinCode}</p>
+                    <p className="text-gray-400 text-sm">Mobile Number: {selectedAddress.phoneNumber}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Cart Items */}
         <div className="space-y-3 mb-4">
           {cartItems.map(item => (
             <div key={item.id} className="bg-slate-800/80 backdrop-blur-sm rounded-xl p-4 border border-slate-700">
               <div className="flex items-center gap-4">
-                <PenIcon color={item.color} />
+                <PenIcon color={item.color || 'blue'} />
                 <div className="flex-1">
-                  <h3 className="text-white text-sm font-medium">{item.name}</h3>
-                  <p className="text-amber-500 font-semibold mt-1">₹ {item.price}</p>
+                  <h3 className="text-white text-sm font-medium">{item.product.name}</h3>
+                  <p className="text-amber-500 font-semibold mt-1">₹ {item.totalAmount}</p>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <div className="flex items-center gap-2">
-                    <button onClick={() => updateQuantity(item.id, -1)} className="w-7 h-7 bg-slate-700 hover:bg-slate-600 text-white rounded flex items-center justify-center transition-colors">−</button>
-                    <span className="w-8 h-7 bg-white text-slate-800 rounded flex items-center justify-center text-sm font-medium">{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.id, 1)} className="w-7 h-7 bg-slate-700 hover:bg-slate-600 text-white rounded flex items-center justify-center transition-colors">+</button>
+                    <button
+                      onClick={() => updateQuantity({
+                        id: item.product._id,
+                        cartId: item._id,
+                        delta: -1,
+                        price: item.product.price
+                      })}
+                      className="w-7 h-7 bg-slate-700 hover:bg-slate-600 text-white rounded flex items-center justify-center transition-colors"
+                      disabled={item.quantity <= 1}
+                    >
+                      −
+                    </button>
+                    <span className="w-8 h-7 bg-white text-slate-800 rounded flex items-center justify-center text-sm font-medium">
+                      {item.quantity}
+                    </span>
+                    <button
+                      onClick={() => updateQuantity({
+                        id: item.product._id,
+                        cartId: item._id,
+                        delta: 1,
+                        price: item.product.price
+                      })}
+                      className="w-7 h-7 bg-slate-700 hover:bg-slate-600 text-white rounded flex items-center justify-center transition-colors"
+                    >
+                      +
+                    </button>
                   </div>
-                  <button onClick={() => removeItem(item.id)} className="text-red-400 hover:text-red-300 text-xs transition-colors">Remove</button>
+                  <button
+                    onClick={() => removeItem(item.product._id)}
+                    className="text-red-400 hover:text-red-300 text-xs transition-colors"
+                  >
+                    Remove
+                  </button>
                 </div>
               </div>
             </div>
@@ -100,7 +293,12 @@ export default function CartPage() {
         {/* Empty Cart State */}
         {cartItems.length === 0 && (
           <div className="bg-slate-800/80 backdrop-blur-sm rounded-xl p-8 mb-4 border border-slate-700 text-center">
-            <p className="text-gray-400">Your cart is empty</p>
+            <p className="text-gray-400 text-lg">Your cart is empty</p>
+            <button
+              className="inline-block mt-4 text-amber-500 hover:text-amber-400 transition-colors"
+            >
+              Continue Shopping
+            </button>
           </div>
         )}
 
@@ -136,7 +334,9 @@ export default function CartPage() {
         {/* Checkout Button */}
         {cartItems.length > 0 && (
           <div className="flex justify-center">
-            <Link to='/payments' className="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 px-20 rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/30">
+            <Link to ="/payments"
+              className="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 px-20 rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/30"
+            >
               Check Out
             </Link>
           </div>
